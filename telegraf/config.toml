@@ -1,0 +1,33 @@
+[agent]
+interval = "2s"
+flush_interval = "1s"
+precision = "1ms"
+
+[[inputs.file]]
+files = ["/data/input.log"]
+data_format = "json"
+json_time_key = "@timestamp"
+json_time_format = "unix_ms"
+
+[[inputs.kafka_consumer]]
+brokers = ["kafka:9092"]
+topics = ["test"]
+name_override = "test-log"
+data_format = "json"
+json_time_key = "@timestamp"
+json_time_format = "unix_ms"
+tag_keys = ["log_time", "ip"]
+json_string_fields = ["path"]
+
+[[outputs.elasticsearch]]
+urls = ["http://elasticsearch:9200"]
+index_name = "test-%Y.%m.%d"
+template_name = "test-tmpl"
+enable_sniffer = true
+manage_template = true
+force_document_id = false
+
+[[outputs.file]]
+files = ["stdout"]
+data_format = "json"
+json_timestamp_units = "1ms"
