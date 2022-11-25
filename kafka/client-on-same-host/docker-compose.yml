@@ -1,0 +1,44 @@
+version: '3.9'
+
+services:
+  kafka:
+    image: wurstmeister/kafka:2.12-2.5.1
+    restart: unless-stopped
+    environment:
+      KAFKA_LISTENERS: PLAINTEXT://:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CREATE_TOPICS: test:1:1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+    # https://docs.docker.com/compose/compose-file/#healthcheck
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "kafka-topics.sh --list --bootstrap-server localhost:9092 | grep -q 'test' || exit 1"
+        ]         
+      interval: 5s
+      timeout: 10s
+      retries: 5
+    depends_on:
+      - zookeeper
+  zookeeper:
+    image: zookeeper:3.7.1
+    restart: unless-stopped
+
+  consumer:
+    image: sko00o/go-toolbox:latest
+    entrypoint: kafka-cli
+    command: |
+      consumer -k kafka:9092 -t test -s first
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  producer:
+    image: sko00o/go-toolbox:latest
+    entrypoint: kafka-cli
+    command: |
+      producer -k kafka:9092 -t test
+    depends_on:
+      kafka:
+        condition: service_healthy
