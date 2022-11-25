@@ -1,0 +1,20 @@
+version: '3.9'
+
+services:
+  # Use Docker CLI
+  docker-client:
+    image: docker:20.10.20
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    command: |
+      sh -c "while true; do sleep 1; done"
+
+  # Use cURL
+  curl:
+    image: curlimages/curl:7.86.0
+    # we need root privilege to access the socket file
+    user: root
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    command: |
+      sh -c "while true; do sleep 1; done"
