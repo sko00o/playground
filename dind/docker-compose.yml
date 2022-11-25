@@ -1,0 +1,21 @@
+version: '3.9'
+
+services:
+  docker-server:
+    image: docker:20.10.20-dind
+    # Explicitly disable tls to avoid docker startup interruption.
+    command: [ '--tls=false' ]
+    privileged: true
+    environment:
+      # Instruct Docker not to start over TLS.
+      DOCKER_TLS_CERTDIR: ""
+      # Improve performance with overlayfs.
+      DOCKER_DRIVER: overlay2
+
+  docker-client:
+    image: docker:20.10.20
+    environment:
+      # Use the daemon of DinD
+      DOCKER_HOST: "tcp://docker-server:2375"
+    command: |
+      sh -c "while true; do sleep 1; done"
