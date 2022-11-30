@@ -2,8 +2,15 @@
 
 - https://stackoverflow.com/a/51634499
 
-## client and broker on same host
+## Client (or another broker) in a container, on the same host
 
 ```sh
-cd client-on-same-host && ../run.sh
+cd client-on-same-host && ./run.sh
 ```
+
+## Client on same machine, not in a container
+
+```sh
+cd client-on-same-machine && ./run.sh
+```
+
