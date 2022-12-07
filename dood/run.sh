@@ -14,4 +14,4 @@ echo ">> show docker info by API"
 docker compose exec -it curl \
     curl --unix-socket /var/run/docker.sock http://localhost/v1.41/info
 
-docker compose down --remove-orphans
+docker compose down --remove-orphans --volumes

@@ -25,4 +25,4 @@ if [ -x "$(command -v $cmd)" ]; then
 fi
 done
 
-docker compose down --remove-orphans
+docker compose down --remove-orphans --volumes

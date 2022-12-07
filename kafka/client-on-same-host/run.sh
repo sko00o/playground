@@ -11,4 +11,4 @@ sleep 10
 echo ">> show some logs"
 docker compose logs --timestamps --since=10s --tail=5 consumer producer
 
-docker compose down --remove-orphans
+docker compose down --remove-orphans --volumes
