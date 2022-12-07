@@ -15,7 +15,7 @@ for cmd in kcat kafkacat; do
 if [ -x "$(command -v $cmd)" ]; then
     echo ">> found $cmd"
     echo ">> produce 10 messages using kcat"
-    for i in {00..10}; do printf "%02d\n" $i; done |
+    for i in {0..10}; do printf "%02d\n" $i; done |
         $cmd -P -b localhost:19092 -t test1
 
     echo ">> consume 10 messages using kcat"
