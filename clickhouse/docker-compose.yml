@@ -1,0 +1,45 @@
+version: '3.9'
+
+services:
+  chserver:
+    image: clickhouse/clickhouse-server:23.1
+    environment:
+      CLICKHOUSE_DB: chdb
+      CLICKHOUSE_USER: chuser
+      CLICKHOUSE_PASSWORD: chpass
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1
+    # ports:
+    #   - "9000:9000"
+    #   - "8123:8123"
+
+  golang-migrate:
+    image: migrate/migrate:v4.15.2
+    volumes:
+      - ./migrations:/migrations:ro
+      - ./run-migrate.sh:/run.sh:ro
+    environment:
+      DSN: clickhouse://chserver:9000?username=chuser&password=chpass&database=chdb&x-multi-statement=true
+      DIR: /migrations
+    entrypoint: sh
+    command: |
+      -c "while true; do sleep 1; done"
+    depends_on:
+      chserver:
+        condition: service_healthy
+
+  curl:
+    image: curlimages/curl:7.86.0
+    volumes:
+      - ./queries:/queries:ro
+      - ./run-curl.sh:/run.sh:ro
+    environment:
+      URL: http://chuser:chpass@chserver:8123/?database=chdb
+      DIR: /queries
+    entrypoint: sh
+    command: |
+      -c "while true; do sleep 1; done"
+    depends_on:
+      chserver:
+        condition: service_healthy
