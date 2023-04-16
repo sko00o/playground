@@ -1,0 +1,63 @@
+version: '3.9'
+
+services:
+
+  consumer:
+    restart: unless-stopped
+    # IMPORTANT! Otherwise, there is no output in logs.
+    tty: true
+    image: confluentinc/cp-kafkacat:7.1.5
+    command: >
+      kafkacat -C -q -b kafka:9092 -t test -o beginning
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  producer:
+    image: confluentinc/cp-kafkacat:7.1.5
+    # IMPORTANT! Using `$$i` for variable escape.
+    command: >
+      sh -c '
+        for i in $(seq 1 10); do
+            printf "%02d\n" $$i
+        done |
+            kafkacat -P -q -b kafka:9092 -t test -D "\n"
+      '
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  kafka:
+    image: wurstmeister/kafka:2.12-2.5.1
+    restart: unless-stopped
+    environment:
+      KAFKA_LISTENERS: PLAINTEXT://:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CREATE_TOPICS: test:1:1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+    # https://docs.docker.com/compose/compose-file/#healthcheck
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "kafka-topics.sh --list --bootstrap-server localhost:9092 | grep -q 'test' || exit 1"
+        ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+
+  zookeeper:
+    image: zookeeper:3.7.1
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "echo stat / | zkCli.sh -server 127.0.0.1:2181"
+        ]
+      interval: 5s
+      timeout: 10s
+      retries: 10
