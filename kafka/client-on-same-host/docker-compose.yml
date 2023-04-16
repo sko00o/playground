@@ -15,15 +15,26 @@ services:
         [
           "CMD-SHELL",
           "kafka-topics.sh --list --bootstrap-server localhost:9092 | grep -q 'test' || exit 1"
-        ]         
+        ]
       interval: 5s
       timeout: 10s
       retries: 5
     depends_on:
-      - zookeeper
+      zookeeper:
+        condition: service_healthy
+
   zookeeper:
     image: zookeeper:3.7.1
     restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "echo stat / | zkCli.sh -server 127.0.0.1:2181"
+        ]
+      interval: 5s
+      timeout: 10s
+      retries: 10
 
   consumer:
     image: sko00o/go-toolbox:latest
