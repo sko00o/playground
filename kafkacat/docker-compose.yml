@@ -4,11 +4,10 @@ services:
 
   consumer:
     restart: unless-stopped
-    # IMPORTANT! Otherwise, there is no output in logs.
-    tty: true
     image: confluentinc/cp-kafkacat:7.1.5
+    # IMPORTANT! Using `-u` for unbuffered output
     command: >
-      kafkacat -C -q -b kafka:9092 -t test -o beginning
+      kafkacat -C -q -u -b kafka:9092 -t test -o beginning
     depends_on:
       kafka:
         condition: service_healthy
