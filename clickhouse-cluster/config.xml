@@ -1,0 +1,57 @@
+<clickhouse>
+    <zookeeper>
+        <node index="1">
+            <host>zookeeper</host>
+            <port>2181</port>
+        </node>
+    </zookeeper>
+
+    <remote_servers replace="1">
+        <ck_cluster>
+            <shard>
+                <internal_replication>true</internal_replication>
+                <replica>
+                    <host>ch00</host>
+                    <port>9000</port>
+                </replica>
+                <replica>
+                    <host>ch01</host>
+                    <port>9000</port>
+                </replica>
+                <replica>
+                    <host>ch02</host>
+                    <port>9000</port>
+                </replica>
+            </shard>
+        </ck_cluster>
+    </remote_servers>
+
+    <macros>
+        <replica from_env="REPLICA" />
+        <shard from_env="SHARD" />
+    </macros>
+
+    <storage_configuration>
+        <disks>
+            <default></default>
+            <disk1>
+                <path>/data/disk1/</path>
+            </disk1>
+            <disk2>
+                <path>/disk/disk2/</path>
+            </disk2>
+        </disks>
+        <policies>
+            <hdd_in_order>
+                <volumes>
+                    <single>
+                        <disk>default</disk>
+                        <disk>disk1</disk>
+                        <disk>disk2</disk>
+                        <load_balancing>round_robin</load_balancing>
+                    </single>
+                </volumes>
+            </hdd_in_order>
+        </policies>
+    </storage_configuration>
+</clickhouse>

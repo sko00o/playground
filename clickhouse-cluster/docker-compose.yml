@@ -1,0 +1,68 @@
+version: '3.9'
+
+services:
+  curl:
+    image: curlimages/curl:7.86.0
+    entrypoint: sh
+    command: |
+      -c "while true; do sleep 1; done"
+    depends_on:
+      ch00:
+        condition: service_healthy
+
+  ch00:
+    image: clickhouse/clickhouse-server:23.1
+    restart: unless-stopped
+    environment:
+      REPLICA: "ch00"
+      SHARD: "00"
+    volumes:
+      - "./config.xml:/etc/clickhouse-server/config.d/metrika.xml:ro"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget --no-verbose --tries=1 --spider localhost:8123/ping || exit 1"
+          # "clickhouse-client --host localhost --port 9000 --query 'SELECT 1' || exit 1"
+        ]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+    ports:
+      - "9000:9000"
+      - "8123:8123"
+    depends_on:
+      - zookeeper
+  ch01:
+    image: clickhouse/clickhouse-server:23.1
+    restart: unless-stopped
+    environment:
+      REPLICA: "ch01"
+      SHARD: "01"
+    volumes:
+      - "./config.xml:/etc/clickhouse-server/config.d/metrika.xml:ro"
+    depends_on:
+      - zookeeper
+  ch02:
+    image: clickhouse/clickhouse-server:23.1
+    restart: unless-stopped
+    environment:
+      REPLICA: "ch02"
+      SHARD: "02"
+    volumes:
+      - "./config.xml:/etc/clickhouse-server/config.d/metrika.xml:ro"
+    depends_on:
+      - zookeeper
+
+  zookeeper:
+    image: zookeeper:3.7.1
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "echo stat / | zkCli.sh -server 127.0.0.1:2181"
+        ]
+      interval: 5s
+      timeout: 10s
+      retries: 10
