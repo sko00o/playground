@@ -1,0 +1,12 @@
+version: '3.9'
+
+services:
+  minio:
+    image: quay.io/minio/minio:RELEASE.2023-04-28T18-11-17Z
+    command: server /data --console-address ":9090"
+    environment:
+      MINIO_ROOT_USER: root
+      MINIO_ROOT_PASSWORD: toortoor
+    ports:
+      - "19000:9000"
+      - "19090:9090"

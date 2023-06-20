@@ -1,0 +1,88 @@
+version: '3.9'
+
+services:
+  cruise-control:
+    build:
+      dockerfile: Dockerfile
+      context: cruise-control-docker
+    restart: on-failure
+    environment:
+      BOOTSTRAP_SERVERS: kafka:9092
+      ZOOKEEPER_CONNECT: zookeeper:2181
+    ports:
+      - "18090:8090"
+    volumes:
+      - "./config/cruise-control:/opt/cruise-control/config"
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  # provide jar file for kafka
+  cruise-control-metrics:
+    build:
+      dockerfile: Dockerfile
+      context: cruise-control-docker
+    restart: on-failure
+    volumes:
+      - cruise-control-metrics:/metrics
+      - ./config/cruise-control-metrics/run.sh:/run.sh:ro
+    command: [ "/run.sh" ]
+    environment:
+      METRICS_REPORTER_FILE: /opt/cruise-control/cruise-control/build/dependant-libs/cruise-control-metrics-reporter.jar
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "test -f /metrics/cruise-control-metrics-reporter.jar"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  kafka:
+    image: wurstmeister/kafka:2.12-2.5.1
+    restart: unless-stopped
+    environment:
+      KAFKA_LISTENERS: PLAINTEXT://:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CREATE_TOPICS: test:1:1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      KAFKA_METRIC_REPORTERS: com.linkedin.kafka.cruisecontrol.metricsreporter.CruiseControlMetricsReporter
+      CLASSPATH: /metrics/*
+      KAFKA_CRUISE_CONTROL_METRICS_REPORTER_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_CRUISE_CONTROL_METRICS_TOPIC_AUTO_CREATE: 'true'
+      KAFKA_CRUISE_CONTROL_METRICS_TOPIC_NUM_PARTITIONS: 1
+      KAFKA_CRUISE_CONTROL_METRICS_TOPIC_REPLICATION_FACTOR: 1
+    volumes:
+      - cruise-control-metrics:/metrics:ro
+      - ./config/kafka/topiccheck.sh:/topiccheck.sh:ro
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "/topiccheck.sh test __CruiseControlMetrics "
+        ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+      cruise-control-metrics:
+        condition: service_healthy
+
+  zookeeper:
+    image: zookeeper:3.7.1
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "echo stat / | zkCli.sh -server 127.0.0.1:2181"
+        ]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+
+volumes:
+  cruise-control-metrics:
