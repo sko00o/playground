@@ -12,7 +12,7 @@ services:
     ports:
       - "18090:8090"
     volumes:
-      - "./config/cruise-control:/opt/cruise-control/config"
+      - "./config/cruise-control:/opt/cruise-control/config:ro"
     depends_on:
       kafka:
         condition: service_healthy
