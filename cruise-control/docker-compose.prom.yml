@@ -1,0 +1,63 @@
+version: '3.9'
+
+services:
+  cruise-control:
+    build:
+      dockerfile: Dockerfile
+      context: cruise-control-docker
+    restart: on-failure
+    environment:
+      BOOTSTRAP_SERVERS: kafka:9092
+      ZOOKEEPER_CONNECT: zookeeper:2181
+      PROMETHEUS_SERVER_ENDPOINT: prometheus:9090
+    ports:
+      - "18090:8090"
+    volumes:
+      - "./config/cruise-control-prom:/opt/cruise-control/config:ro"
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  prometheus:
+    image: prom/prometheus:v2.44.0
+    restart: unless-stopped
+    ports:
+      - "19090:9090"
+    volumes:
+      - "./config/prometheus:/etc/prometheus:ro"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+
+  kafka:
+    image: wurstmeister/kafka:2.12-2.5.1
+    restart: unless-stopped
+    environment:
+      KAFKA_LISTENERS: PLAINTEXT://:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CREATE_TOPICS: test:1:1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      KAFKA_JMX_OPTS: "-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=kafka -Dcom.sun.management.jmxremote.rmi.port=1099"
+      JMX_PORT: 1099
+    volumes:
+      - ./config/kafka/topiccheck.sh:/topiccheck.sh:ro
+    healthcheck:
+      test: [ "CMD-SHELL", "/topiccheck.sh test" ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+
+  zookeeper:
+    image: zookeeper:3.7.1
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "echo stat / | zkCli.sh -server 127.0.0.1:2181"
+        ]
+      interval: 5s
+      timeout: 10s
+      retries: 10

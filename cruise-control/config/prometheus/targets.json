@@ -1,0 +1,10 @@
+[
+    {
+        "labels": {
+            "job": "jmx"
+        },
+        "targets": [
+            "kafka:1099"
+        ]
+    }
+]

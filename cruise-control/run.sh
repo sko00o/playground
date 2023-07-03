@@ -2,13 +2,18 @@
 
 cd "$(dirname "$0")"
 
+CFG=docker-compose.yml
+if [[ $1 == 'prom' ]]; then
+    CFG=docker-compose.prom.yml
+fi
+
 echo ">> compose environment"
-docker compose up -d --remove-orphans
+docker compose -f "$CFG" up -d --remove-orphans
 
 echo ">> please visit http://127.0.0.1:18090"
 
 function cleanup {
-    docker compose down --remove-orphans --volumes
+    docker compose -f "$CFG" down --remove-orphans --volumes
     exit 0
 }
 trap 'cleanup' SIGINT
