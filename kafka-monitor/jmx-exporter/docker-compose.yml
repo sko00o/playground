@@ -1,0 +1,81 @@
+version: '3.9'
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    ports:
+      - "9090:9090"
+    volumes:
+      - "./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro"
+
+  kafka:
+    image: bitnami/kafka:3.4.1
+    restart: unless-stopped
+    environment:
+      KAFKA_ENABLE_KRAFT: "yes"
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_OPTS: "-javaagent:/share/jmx_prometheus_javaagent.jar=7071:/etc/jmx-exporter.yml"
+    volumes:
+      - "./config/jmx-exporter.yml:/etc/jmx-exporter.yml:ro"
+      - "jmx-exporter-share:/share/:ro"
+    depends_on:
+      jmx-exporter:
+        condition: service_healthy
+
+  # provide jmx_prometheus_javaagent.jar to kafka
+  jmx-exporter:
+    image: bitnami/jmx-exporter:0.19.0
+    restart: on-failure
+    volumes:
+      - "jmx-exporter-share:/share/"
+    entrypoint: []
+    user: root
+    command: |
+      /bin/bash -c '
+        set -e
+        if [[ -d "/share" ]]; then
+          cp "/opt/bitnami/jmx-exporter/jmx_prometheus_javaagent.jar" "/share/"
+        fi
+        sleep infinity
+      '
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "test -f /share/jmx_prometheus_javaagent.jar"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  consumer:
+    restart: unless-stopped
+    image: confluentinc/cp-kafkacat:7.1.5
+    # IMPORTANT! Using `-u` for unbuffered output
+    command: >
+      kafkacat -b kafka:9092 -G testgroup test
+    depends_on:
+      kafka:
+        condition: service_started
+      producer:
+        condition: service_started
+
+  producer:
+    image: confluentinc/cp-kafkacat:7.1.5
+    # IMPORTANT! Using `$$i` for variable escape.
+    command: >
+      sh -c '
+        i=0
+        while true; do
+            sleep 1
+            printf "%04d" $$i |  kafkacat -P -q -b kafka:9092 -t test
+            i=$$(($$i+1))
+        done
+      '
+    depends_on:
+      kafka:
+        condition: service_started
+
+volumes:
+  jmx-exporter-share:
