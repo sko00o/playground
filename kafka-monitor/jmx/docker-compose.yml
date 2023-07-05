@@ -1,0 +1,42 @@
+version: '3.9'
+
+services:
+  kafka:
+    image: bitnami/kafka:3.4.1
+    restart: unless-stopped
+    environment:
+      KAFKA_ENABLE_KRAFT: "yes"
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_JMX_OPTS: "-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=localhost -Dcom.sun.management.jmxremote.rmi.port=9999"
+      JMX_PORT: 9999
+    ports:
+      - "9999:9999"
+
+  consumer:
+    restart: unless-stopped
+    image: confluentinc/cp-kafkacat:7.1.5
+    # IMPORTANT! Using `-u` for unbuffered output
+    command: >
+      kafkacat -C -q -u -b kafka:9092 -t test -o beginning
+    depends_on:
+      kafka:
+        condition: service_started
+      producer:
+        condition: service_started
+
+  producer:
+    image: confluentinc/cp-kafkacat:7.1.5
+    # IMPORTANT! Using `$$i` for variable escape.
+    command: >
+      sh -c '
+        i=0
+        while true; do
+            sleep 1
+            printf "%04d" $$i |  kafkacat -P -q -b kafka:9092 -t test
+            i=$$(($$i+1))
+        done
+      '
+    depends_on:
+      kafka:
+        condition: service_started
