@@ -13,6 +13,7 @@ services:
     restart: unless-stopped
     environment:
       KAFKA_ENABLE_KRAFT: "yes"
+      KAFKA_KRAFT_CLUSTER_ID: "ImTIQ2tVR_Ce51OFt4wirw"
       ALLOW_PLAINTEXT_LISTENER: "yes"
       KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "true"
       KAFKA_OPTS: "-javaagent:/share/jmx_prometheus_javaagent.jar=7071:/etc/jmx-exporter.yml"
@@ -45,7 +46,7 @@ services:
           "CMD-SHELL",
           "test -f /share/jmx_prometheus_javaagent.jar"
         ]
-      interval: 10s
+      interval: 5s
       timeout: 5s
       retries: 30
 
