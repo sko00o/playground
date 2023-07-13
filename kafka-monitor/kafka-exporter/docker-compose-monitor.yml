@@ -1,0 +1,37 @@
+version: '3.9'
+
+services:
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:v1.7.0
+    restart: unless-stopped
+    command: >
+      --kafka.server=kafka-1:9092 
+      --kafka.server=kafka-2:9092 
+      --kafka.server=kafka-3:9092 
+      --kafka.server=kafka-4:9092 
+      --kafka.version=3.1.5
+    depends_on:
+      kafka-1:
+        condition: service_started
+      kafka-2:
+        condition: service_started
+      kafka-3:
+        condition: service_started
+      kafka-4:
+        condition: service_started
+
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    volumes:
+      - "./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro"
+
+  grafana:
+    image: grafana/grafana:7.5.17
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - "./config/datasources:/etc/grafana/provisioning/datasources:ro"
+      - "./config/dashboards:/etc/grafana/provisioning/dashboards:ro"
+    ports:
+      - "3000:3000"

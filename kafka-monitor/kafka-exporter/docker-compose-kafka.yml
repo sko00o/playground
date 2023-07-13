@@ -1,0 +1,64 @@
+version: '3.9'
+
+services:
+  zookeeper-1:
+    image: 'confluentinc/cp-zookeeper:${CONFLUENT_PLATFORM_VERSION:-7.1.5}'
+    restart: unless-stopped
+    env_file:
+      - env/zookeeper.env
+    environment:
+      ZOOKEEPER_SERVER_ID: 1
+  zookeeper-2:
+    image: 'confluentinc/cp-zookeeper:${CONFLUENT_PLATFORM_VERSION:-7.1.5}'
+    restart: unless-stopped
+    env_file:
+      - env/zookeeper.env
+    environment:
+      ZOOKEEPER_SERVER_ID: 2
+  zookeeper-3:
+    image: 'confluentinc/cp-zookeeper:${CONFLUENT_PLATFORM_VERSION:-7.1.5}'
+    restart: unless-stopped
+    env_file:
+      - env/zookeeper.env
+    environment:
+      ZOOKEEPER_SERVER_ID: 3
+
+  kafka-1:
+    image: 'confluentinc/cp-kafka:${CONFLUENT_PLATFORM_VERSION:-7.1.5}'
+    restart: unless-stopped
+    env_file:
+      - env/kafka.env
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-1:9092
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      KAFKA_BROKER_ID: '1'
+      KAFKA_BROKER_RACK: '12'
+      # KAFKA_LISTENERS: 'LISTENER_INTERNAL://:9091,LISTENER_LOCAL://:29091'
+      # KAFKA_ADVERTISED_LISTENERS: 'LISTENER_INTERNAL://kafka-1:9091,LISTENER_LOCAL://localhost:29091'
+  kafka-2:
+    image: 'confluentinc/cp-kafka:${CONFLUENT_PLATFORM_VERSION:-7.1.5}'
+    restart: unless-stopped
+    env_file:
+      - env/kafka.env
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-2:9092
+      KAFKA_BROKER_ID: '2'
+      KAFKA_BROKER_RACK: '12'
+  kafka-3:
+    image: 'confluentinc/cp-kafka:${CONFLUENT_PLATFORM_VERSION:-7.1.5}'
+    restart: unless-stopped
+    env_file:
+      - env/kafka.env
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-3:9092
+      KAFKA_BROKER_ID: '3'
+      KAFKA_BROKER_RACK: '34'
+  kafka-4:
+    image: 'confluentinc/cp-kafka:${CONFLUENT_PLATFORM_VERSION:-7.1.5}'
+    restart: unless-stopped
+    env_file:
+      - env/kafka.env
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-4:9092
+      KAFKA_BROKER_ID: '4'
+      KAFKA_BROKER_RACK: '34'
