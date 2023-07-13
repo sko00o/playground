@@ -1,0 +1,10 @@
+version: '3.9'
+
+services:
+  dev:
+    image: golang:1.18
+    volumes:
+      - ".:/app:ro"
+    working_dir: /app
+    command: >
+      bash -c "sleep infinity"
