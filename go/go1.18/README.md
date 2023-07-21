@@ -3,19 +3,22 @@
 ## How to run
 
 ```sh
-docker compose up -d --remove-orphans
+source ./utils.sh
 
-GO() {
-    docker compose exec -it dev go $@
-}
+compose-up
 GO run ./generics
 GO run ./fuzz
 GO test ./fuzz
 GO test -run=FuzzReverse/e386ddb8ccb05b77 ./fuzz
 GO test -fuzz=Fuzz ./fuzz
 
+for i in ./generics/limitations/*; do
+    echo ">>> run $i"
+    GO run $i
+done
+
 # cleanup
-docker compose down --remove-orphans --volumes
+compose-down
 ```
 
 ## Reference
