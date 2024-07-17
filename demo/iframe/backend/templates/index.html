@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ title }}</title>
+    <script>
+        function getIPAddress() {
+            fetch('{{ request.scope.get("root_path", "") }}/api/addr', {method: 'POST'})
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('address').textContent = data.addr;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+    </script>
+</head>
+<body>
+    <div id="targetDiv">
+        <h1>Backend write in Python</h1>
+        <p>Click from: <span id="address"></span></p>
+        <button onclick="getIPAddress()">Click Here</button>
+    </div>
+</body>
+</html>
