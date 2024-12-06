@@ -1,0 +1,16 @@
+services:
+  comfyui:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    restart: on-failure
+    ports:
+      - "8188:8188"
+    volumes:
+      - ./ComfyUI-Manager/config.ini:/workspace/ComfyUI/custom_nodes/ComfyUI-Manager/config.ini:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8188"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
