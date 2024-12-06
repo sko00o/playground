@@ -7,7 +7,7 @@ RUN apt-get update && \
 ARG COMFYCLI=comfy-cli
 RUN pip install --no-cache-dir ${COMFYCLI}
 
-RUN comfy --skip-prompt --here install
+RUN comfy --skip-prompt --here install --cpu
 
 RUN comfy set-default $(pwd)/ComfyUI --launch-extras="--listen --preview-method=auto"
 
