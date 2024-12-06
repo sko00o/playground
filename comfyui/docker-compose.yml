@@ -1,0 +1,8 @@
+services:
+  comfyui:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    restart: on-failure
+    ports:
+      - "8188:8188"
