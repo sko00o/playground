@@ -1,0 +1,37 @@
+services:
+  wg-server:
+    image: linuxserver/wireguard
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Shanghai
+      - SERVERURL=auto
+      - SERVERPORT=51820
+      - PEERS=1
+      - PEERDNS=auto
+      - INTERNAL_SUBNET=10.13.13.0
+    volumes:
+      - ./etc/server:/config
+      # - /lib/modules:/lib/modules
+    ports:
+      - 51820:51820/udp
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+    restart: unless-stopped
+
+  wg-client:
+    image: linuxserver/wireguard
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./etc/client:/config
+    depends_on:
+      - wg-server
+    restart: unless-stopped
