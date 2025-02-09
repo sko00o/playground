@@ -1,0 +1,7 @@
+volumes:
+  ollama:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /usr/share/ollama/.ollama
