@@ -1,5 +1,6 @@
 services:
   vllm:
+    restart: unless-stopped
     image: vllm/vllm-openai:latest
     command: |
       --model $MODEL
@@ -10,7 +11,6 @@ services:
       - vllm-cache:/root/.cache/huggingface
     environment:
       - HUGGING_FACE_HUB_TOKEN=${HUGGING_FACE_HUB_TOKEN:-""}
-    restart: unless-stopped
     shm_size: 1g
     deploy:
       resources:
@@ -19,8 +19,15 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
 
   open-webui:
+    restart: unless-stopped
     image: ghcr.io/open-webui/open-webui:main
     environment:
       - OPENAI_API_BASE_URL=http://vllm:8000/v1
@@ -30,7 +37,8 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - vllm
+      vllm:
+        condition: service_healthy
 
 volumes:
   vllm-cache:
