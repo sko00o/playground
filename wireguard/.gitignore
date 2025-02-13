@@ -1,2 +1,4 @@
-etc/client/
-etc/server/
+config/*
+!config/peer1
+config/peer1/*
+!config/peer1/.keep

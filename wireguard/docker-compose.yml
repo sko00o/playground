@@ -1,37 +1,42 @@
+x-common: &common
+  image: linuxserver/wireguard
+  restart: unless-stopped
+  cap_add:
+    - NET_ADMIN
+    - SYS_MODULE
+  volumes:
+    - /lib/modules:/lib/modules:ro
+  sysctls:
+    - net.ipv4.conf.all.src_valid_mark=1
+  environment:
+    - PUID=1000
+    - PGID=1000
+    - TZ=Asia/Shanghai
+
 services:
   wg-server:
-    image: linuxserver/wireguard
-    cap_add:
-      - NET_ADMIN
-      - SYS_MODULE
+    <<: *common
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Asia/Shanghai
-      - SERVERURL=auto
+      - SERVERURL=wg-server # Public address
       - SERVERPORT=51820
       - PEERS=1
       - PEERDNS=auto
       - INTERNAL_SUBNET=10.13.13.0
+      - ALLOWEDIPS=0.0.0.0/0 # IPv4 only
     volumes:
-      - ./etc/server:/config
-      # - /lib/modules:/lib/modules
+      - ./config:/config
     ports:
       - 51820:51820/udp
-    sysctls:
-      - net.ipv4.conf.all.src_valid_mark=1
-    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "test", "-f", "/config/peer1/peer1.conf"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   wg-client:
-    image: linuxserver/wireguard
-    cap_add:
-      - NET_ADMIN
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Asia/Shanghai
+    <<: *common
     volumes:
-      - ./etc/client:/config
+      - ./config/peer1:/config/wg_confs
     depends_on:
-      - wg-server
-    restart: unless-stopped
+      wg-server:
+        condition: service_healthy
