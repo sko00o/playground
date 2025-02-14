@@ -5,6 +5,7 @@
         },
         "targets": [
             "kafka:1099"
-        ]
+        ],
+        "metrics_path": "/metrics"
     }
 ]
