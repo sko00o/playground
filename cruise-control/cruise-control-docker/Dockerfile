@@ -1,4 +1,4 @@
-FROM eclipse-temurin:11-jdk-focal as cruisecontrol
+FROM eclipse-temurin:11-jdk-focal AS cruisecontrol
 ARG CRUISE_CONTROL_VERSION=2.5.123
 USER root
 WORKDIR /
@@ -22,7 +22,7 @@ RUN \
     && mv -v /cruise-control/cruise-control/build/dependant-libs/cruise-control-metrics-reporter-${CRUISE_CONTROL_VERSION}.jar \
     /cruise-control/cruise-control/build/dependant-libs/cruise-control-metrics-reporter.jar
 
-FROM node:18.14-buster as cruisecontrol-ui
+FROM node:18.14-buster AS cruisecontrol-ui
 ARG CRUISE_CONTROL_UI_GIT_REF=v0.4.0
 WORKDIR /
 RUN \

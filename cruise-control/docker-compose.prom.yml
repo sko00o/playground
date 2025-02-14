@@ -1,0 +1,84 @@
+services:
+  cruise-control:
+    restart: unless-stopped
+    build:
+      dockerfile: Dockerfile
+      context: cruise-control-docker
+    environment:
+      BOOTSTRAP_SERVERS: kafka:9092
+      ZOOKEEPER_CONNECT: zookeeper:2181
+      PROMETHEUS_SERVER_ENDPOINT: http://prometheus:9090
+    ports:
+      - "18090:8090"
+    volumes:
+      - "./config/cruise-control-prom:/opt/cruise-control/config:ro"
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 8090"]
+      start_period: 10s
+      interval: 5s
+      timeout: 10s
+      retries: 5
+    depends_on:
+      prometheus:
+        condition: service_started
+
+  prometheus:
+    image: prom/prometheus:v2.44.0
+    restart: unless-stopped
+    ports:
+      - "19090:9090"
+    volumes:
+      - "./config/prometheus:/etc/prometheus:ro"
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  kafka:
+    image: wurstmeister/kafka:2.12-2.5.1
+    restart: unless-stopped
+    environment:
+      KAFKA_LISTENERS: PLAINTEXT://:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_OPTS: >
+        -javaagent:/jmx-exporter/jmx_prometheus_javaagent.jar=1099:/jmx-exporter/examples/kafka-2_0_0.yml
+      KAFKA_JMX_OPTS: >
+        -Djava.rmi.server.hostname=kafka
+        -Dcom.sun.management.jmxremote=true
+        -Dcom.sun.management.jmxremote.authenticate=false
+        -Dcom.sun.management.jmxremote.ssl=false
+    volumes:
+      - jmx-exporter:/jmx-exporter:ro
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 9092"]
+      start_period: 10s
+      interval: 5s
+      timeout: 10s
+      retries: 5
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+      jmx-exporter:
+        condition: service_started
+
+  zookeeper:
+    image: zookeeper:3.7.1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "echo stat / | zkCli.sh -server 127.0.0.1:2181"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+
+  jmx-exporter:
+    image: bitnami/jmx-exporter:1.1.0
+    restart: unless-stopped
+    volumes:
+      - jmx-exporter:/opt/bitnami/jmx-exporter
+    entrypoint: sh
+    command: |
+      -c "trap 'exit 0' TERM INT; exec tail -f /dev/null"
+
+volumes:
+  jmx-exporter:
