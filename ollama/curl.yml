@@ -1,0 +1,10 @@
+services:
+  curl:
+    network_mode: host
+    image: curlimages/curl:7.86.0
+    entrypoint: sh
+    command: |
+      -c "trap 'exit 0' TERM INT; exec tail -f /dev/null"
+    depends_on:
+      nginx:
+        condition: service_started

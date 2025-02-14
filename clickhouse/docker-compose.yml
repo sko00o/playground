@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   chserver:
     image: clickhouse/clickhouse-server:23.1

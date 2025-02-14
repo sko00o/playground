@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   docker-server:
     image: docker:20.10.20-dind

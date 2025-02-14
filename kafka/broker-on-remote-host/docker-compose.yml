@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   remote-host:
     image: docker:20.10.20-dind
