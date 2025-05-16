@@ -3,7 +3,7 @@ set -e
 
 cd "$(dirname "$0")"
 
-COMPOSE_FILE="docker-compose.yml:ollama.ports.yml"
+COMPOSE_FILE="docker-compose.yml:nginx.yml:curl.yml"
 
 # check if ollama model dir exists
 default_model_dir="/usr/share/ollama/.ollama"
@@ -18,13 +18,19 @@ export COMPOSE_FILE
 echo ">> compose environment"
 docker compose up -d --build --remove-orphans
 
-cleanup() {
+defer() {
     docker compose down --remove-orphans --volumes
     exit 0
 }
-trap cleanup SIGINT
-trap cleanup SIGTERM
+trap defer EXIT
 
-echo ">> please visit http://127.0.0.1:11434"
-echo "press ctrl+c to stop"
-tail -f /dev/null
+echo ">> send some requests"
+CURL="docker compose exec curl curl"
+
+echo ">> 1. without api key"
+$CURL -i http://localhost:11434 || true # ignore error
+echo
+
+echo ">> 2. with correct api key"
+$CURL -i http://localhost:11434 -H "Authorization: Bearer YOUR_SECRET_API_KEY"
+echo

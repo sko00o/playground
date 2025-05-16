@@ -5,6 +5,7 @@ services:
     entrypoint: sh
     command: |
       -c "trap 'exit 0' TERM INT; exec tail -f /dev/null"
+
     depends_on:
       nginx:
         condition: service_started
