@@ -17,3 +17,4 @@ WORKDIR /app
 COPY . .
 
 ENV DISPLAY=:99
+CMD ["python3", "main.py"]
