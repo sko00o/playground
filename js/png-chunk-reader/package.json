@@ -1,0 +1,10 @@
+{
+  "name": "png-chunk-reader",
+  "version": "1.0.0",
+  "description": "A tool to read specific chunks from PNG files",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js"
+  },
+  "dependencies": {}
+}
