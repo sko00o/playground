@@ -1,0 +1,5 @@
+volumes:
+  ollama:
+    external: true
+    # use existing ollama volume
+    name: ollama

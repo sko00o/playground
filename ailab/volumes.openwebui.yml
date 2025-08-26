@@ -1,0 +1,5 @@
+volumes:
+  open-webui:
+    external: true
+    # use existing open-webui volume
+    name: open-webui
