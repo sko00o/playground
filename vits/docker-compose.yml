@@ -1,0 +1,13 @@
+services:
+  vits:
+    image: vits
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./models:/workspace/models
+      - ./output:/workspace/output
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
